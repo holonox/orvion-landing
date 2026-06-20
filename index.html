@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orvion — Talk. Translate. Reply in any language.</title>
+  <meta name="description" content="Voice-first AI on WhatsApp. Send voice notes, translate instantly, and reply naturally — in your voice.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M12 3v18M7 7v10M17 7v10M3 10v4M21 10v4' stroke='%237c3aed' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg-soft: #12121a;
+      --surface: #16161f;
+      --surface-2: #1c1c28;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f5f5f7;
+      --text-muted: #9b9ba8;
+      --primary: #7c3aed;
+      --primary-2: #a855f7;
+      --accent: #22d3ee;
+      --green: #25d366;
+      --radius: 18px;
+      --max: 1180px;
+      --grad: linear-gradient(135deg, #a855f7 0%, #7c3aed 45%, #22d3ee 110%);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: 100%;
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .text-gradient {
+      background: var(--grad);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* ===== Background glow ===== */
+    body::before {
+      content: "";
+      position: fixed;
+      top: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 900px;
+      height: 900px;
+      background: radial-gradient(circle, rgba(124, 58, 237, 0.18) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ===== Navbar ===== */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(14px);
+      background: rgba(10, 10, 15, 0.7);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+    }
+    .logo-group { display: flex; align-items: center; gap: 10px; }
+    .logo-icon {
+      width: 38px; height: 38px;
+      display: grid; place-items: center;
+      border-radius: 11px;
+      background: var(--grad);
+      color: #fff;
+      box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+    }
+    .logo-icon svg { width: 22px; height: 22px; }
+    .logo-text { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.02em; }
+
+    .desktop-menu { display: flex; align-items: center; gap: 32px; }
+    .desktop-menu a { color: var(--text-muted); font-weight: 500; font-size: 0.95rem; transition: color 0.2s; }
+    .desktop-menu a:hover { color: var(--text); }
+    .btn-login {
+      padding: 9px 22px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      color: var(--text) !important;
+      font-weight: 600 !important;
+    }
+    .btn-login:hover { border-color: var(--primary); }
+
+    .mobile-toggle {
+      display: none;
+      background: none; border: none; cursor: pointer; color: var(--text);
+    }
+
+    /* ===== Buttons ===== */
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 30px;
+      border-radius: 12px;
+      background: var(--grad);
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+      box-shadow: 0 10px 30px rgba(124, 58, 237, 0.45);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(124, 58, 237, 0.55); }
+
+    /* ===== Hero ===== */
+    .hero { position: relative; z-index: 1; padding: 80px 0 90px; }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 56px;
+      align-items: center;
+    }
+    .badge {
+      display: inline-block;
+      padding: 7px 16px;
+      border-radius: 999px;
+      background: rgba(124, 58, 237, 0.12);
+      border: 1px solid rgba(124, 58, 237, 0.3);
+      color: var(--primary-2);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      margin-bottom: 24px;
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 5vw, 3.7rem);
+      line-height: 1.05;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 22px;
+    }
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 520px;
+      margin-bottom: 34px;
+    }
+    .powered-by {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-top: 20px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .powered-by svg { color: var(--accent); }
+
+    /* ===== Hero chat visual ===== */
+    .hero-image-container { display: flex; justify-content: center; }
+    .hero-chat-visual { position: relative; width: 320px; }
+    .hero-chat-glow {
+      position: absolute; inset: -40px;
+      background: radial-gradient(circle, rgba(124, 58, 237, 0.35) 0%, transparent 70%);
+      filter: blur(20px);
+      z-index: 0;
+    }
+    .hero-chat-card {
+      position: relative; z-index: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+    }
+    .floating { animation: float 5s ease-in-out infinite; }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+
+    .hero-chat-header {
+      display: flex; align-items: center; gap: 11px;
+      padding-bottom: 14px; margin-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-chat-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      background: var(--grad); color: #fff;
+    }
+    .hero-chat-name { font-weight: 700; font-size: 0.95rem; }
+    .hero-chat-status { font-size: 0.75rem; color: var(--green); }
+    .hero-chat-messages { display: flex; flex-direction: column; gap: 10px; min-height: 200px; }
+    .hero-msg { max-width: 80%; padding: 10px 14px; border-radius: 16px; font-size: 0.85rem; }
+    .hero-msg-in { align-self: flex-start; background: var(--surface-2); border-bottom-left-radius: 4px; }
+    .hero-msg-out {
+      align-self: flex-end;
+      background: var(--grad);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+    .hero-msg-audio { display: flex; align-items: center; gap: 8px; }
+    .hero-chat-input {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 16px; padding: 10px 14px;
+      background: var(--surface-2);
+      border-radius: 14px;
+      color: var(--text-muted); font-size: 0.85rem;
+    }
+    .hero-chat-send {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: grid; place-items: center;
+      background: var(--grad); color: #fff;
+    }
+    .hero-badge-float {
+      position: absolute; z-index: 2;
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 13px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 0.78rem; font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    }
+    .hero-badge-1 { top: 30px; left: -56px; color: var(--accent); animation: float 6s ease-in-out infinite; }
+    .hero-badge-2 { bottom: 60px; right: -50px; color: var(--primary-2); animation: float 6s ease-in-out infinite 1s; }
+
+    /* ===== Section base ===== */
+    section { position: relative; z-index: 1; padding: 90px 0; }
+    .section-header { text-align: center; max-width: 640px; margin: 0 auto 56px; }
+    .section-header h2 {
+      font-size: clamp(2rem, 4vw, 2.7rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .section-header p { color: var(--text-muted); font-size: 1.1rem; }
+
+    /* ===== Services ===== */
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+    .service-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px 28px;
+      transition: transform 0.25s, border-color 0.25s;
+    }
+    .service-card:hover { transform: translateY(-6px); border-color: rgba(124, 58, 237, 0.4); }
+    .service-icon {
+      width: 54px; height: 54px;
+      border-radius: 14px;
+      display: grid; place-items: center;
+      margin-bottom: 20px;
+    }
+    .service-card h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 8px; }
+    .service-card p { color: var(--text-muted); font-size: 0.95rem; }
+
+    /* ===== WhatsApp section ===== */
+    .wa-section { background: var(--bg-soft); }
+    .wa-grid {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    .chat-window {
+      max-width: 340px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+    }
+    .chat-header-wa {
+      display: flex; align-items: center; gap: 10px;
+      padding: 16px 18px;
+      background: linear-gradient(90deg, rgba(124,58,237,0.18), transparent);
+      border-bottom: 1px solid var(--border);
+      font-weight: 700;
+    }
+    .status-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); }
+    .chat-body-wa { padding: 20px; display: flex; flex-direction: column; gap: 12px; background: #0d0d14; min-height: 240px; }
+    .msg { max-width: 82%; padding: 10px 14px; border-radius: 14px; font-size: 0.87rem; }
+    .received { align-self: flex-start; background: var(--surface-2); border-bottom-left-radius: 4px; }
+    .sent { align-self: flex-end; background: var(--grad); color: #fff; border-bottom-right-radius: 4px; }
+    .sent-audio { align-self: flex-end; background: var(--green); color: #04210f; font-weight: 600; padding: 10px 14px; border-radius: 14px; font-size: 0.85rem; }
+
+    .wa-text h2 { font-size: clamp(2rem, 4vw, 2.7rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 18px; }
+    .wa-text > p { color: var(--text-muted); font-size: 1.1rem; margin-bottom: 26px; max-width: 460px; }
+    .wa-features { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    .wa-features li { display: flex; align-items: center; gap: 11px; font-weight: 500; }
+
+    /* ===== Plans ===== */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+      align-items: start;
+    }
+    .pricing-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 34px 28px;
+      position: relative;
+      transition: transform 0.25s;
+    }
+    .pricing-card:hover { transform: translateY(-6px); }
+    .pricing-card.popular {
+      border-color: var(--primary);
+      background: linear-gradient(180deg, rgba(124,58,237,0.12), var(--surface));
+      box-shadow: 0 20px 50px rgba(124, 58, 237, 0.25);
+    }
+    .popular-badge {
+      position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+      background: var(--grad); color: #fff;
+      padding: 5px 16px; border-radius: 999px;
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em;
+    }
+    .plan-name { text-transform: uppercase; font-size: 1.2rem; font-weight: 700; margin-bottom: 14px; }
+    .plan-price { display: flex; align-items: baseline; gap: 4px; margin-bottom: 24px; }
+    .plan-price-amount { font-size: 2.8rem; font-weight: 800; letter-spacing: -0.03em; }
+    .plan-price-period { color: var(--text-muted); font-weight: 500; }
+    .plan-features { list-style: none; display: flex; flex-direction: column; gap: 13px; margin-bottom: 28px; }
+    .plan-features li { display: flex; align-items: center; gap: 9px; font-size: 0.85rem; color: var(--text-muted); }
+    .plan-features li::before {
+      content: ""; width: 16px; height: 16px; flex-shrink: 0;
+      background: var(--primary); border-radius: 50%;
+      -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 5 5L20 7'/%3E%3C/svg%3E") center/12px no-repeat;
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 5 5L20 7'/%3E%3C/svg%3E") center/12px no-repeat;
+    }
+    .plan-features li strong { color: var(--text); }
+    .btn-plan-primary, .btn-plan-outline {
+      display: block; text-align: center;
+      padding: 13px; border-radius: 11px;
+      font-weight: 700; transition: transform 0.2s, background 0.2s;
+    }
+    .btn-plan-primary { background: var(--grad); color: #fff; box-shadow: 0 10px 25px rgba(124,58,237,0.4); }
+    .btn-plan-outline { border: 1px solid var(--border); color: var(--text); }
+    .btn-plan-outline:hover { border-color: var(--primary); }
+    .btn-plan-primary:hover { transform: translateY(-2px); }
+
+    /* ===== Waitlist ===== */
+    .waitlist { background: var(--bg-soft); }
+    .waitlist-inner {
+      max-width: 620px; margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 48px 44px;
+      box-shadow: 0 30px 70px rgba(0,0,0,0.4);
+    }
+    .waitlist .section-header { margin-bottom: 36px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .field { display: flex; flex-direction: column; gap: 7px; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      padding: 13px 15px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.18);
+    }
+    .field textarea { resize: vertical; min-height: 96px; }
+    .field select { appearance: none; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239b9ba8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center; background-size: 18px; padding-right: 40px;
+    }
+    .field select option { background: var(--surface); }
+    .waitlist .btn-primary { width: 100%; justify-content: center; margin-top: 8px; }
+    .form-note { text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-top: 16px; }
+
+    /* ===== Footer ===== */
+    .footer { background: var(--bg); border-top: 1px solid var(--border); padding: 56px 0 30px; position: relative; z-index: 1; }
+    .footer-content { display: flex; justify-content: space-between; gap: 40px; flex-wrap: wrap; margin-bottom: 40px; }
+    .footer-brand { max-width: 280px; }
+    .footer-brand .logo-group { margin-bottom: 14px; }
+    .logo-text-footer { font-size: 1.2rem; font-weight: 800; }
+    .footer-brand p { color: var(--text-muted); font-size: 0.92rem; }
+    .footer-links { display: flex; gap: 64px; }
+    .link-col { display: flex; flex-direction: column; gap: 11px; }
+    .link-col h4 { font-size: 0.95rem; margin-bottom: 4px; }
+    .link-col a { color: var(--text-muted); font-size: 0.9rem; transition: color 0.2s; }
+    .link-col a:hover { color: var(--text); }
+    .footer-bottom { border-top: 1px solid var(--border); padding-top: 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .made-by {
+      display: inline-flex; align-items: center; gap: 7px;
+      color: var(--text-muted); font-size: 0.85rem; font-weight: 500;
+      transition: opacity 0.2s;
+    }
+    .made-by:hover { opacity: 0.8; }
+    .made-by .heart { color: #ef4444; }
+    .made-by .holonox-logo { height: 16px; width: auto; display: block; }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 920px) {
+      .hero-grid { grid-template-columns: 1fr; text-align: center; gap: 70px; }
+      .hero p { margin-left: auto; margin-right: auto; }
+      .badge { margin-top: 8px; }
+      .wa-grid { grid-template-columns: 1fr; gap: 48px; }
+      .wa-text { text-align: center; }
+      .wa-text > p { margin-left: auto; margin-right: auto; }
+      .wa-features { display: inline-flex; text-align: left; }
+    }
+    @media (max-width: 760px) {
+      .desktop-menu { display: none; }
+      .mobile-toggle { display: block; }
+      .services-grid, .pricing-grid { grid-template-columns: 1fr; }
+      .footer-content { flex-direction: column; }
+      .hero-badge-1 { left: -20px; }
+      .hero-badge-2 { right: -16px; }
+    }
+    @media (max-width: 520px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .waitlist-inner { padding: 34px 22px; }
+      section { padding: 64px 0; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ===== Navbar ===== -->
+  <nav class="navbar">
+    <div class="container nav-content">
+      <a class="logo-group" href="#top">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v18M7 7v10M17 7v10M3 10v4M21 10v4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></path></svg>
+        </div>
+        <span class="logo-text">Orvion</span>
+      </a>
+      <div class="desktop-menu">
+        <a href="#top">Home</a>
+        <a href="#services">Services</a>
+        <a href="#whatsapp">WhatsApp</a>
+        <a class="btn-login" href="#waitlist">Join Waitlist</a>
+      </div>
+      <button class="mobile-toggle" aria-label="Menu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ===== Hero ===== -->
+  <section class="hero" id="top">
+    <div class="container hero-grid">
+      <div>
+        <span class="badge">AI-Powered Voice Assistant</span>
+        <h1>Your AI Assistant <br><span class="text-gradient">Lives in WhatsApp</span></h1>
+        <p>Orvion is your intelligent voice assistant that turns text to speech, speech to text, and translates languages instantly — all within your favourite chat app.</p>
+        <div class="hero-actions">
+          <a class="btn-primary" href="#waitlist">Join the Waitlist</a>
+        </div>
+        <div class="powered-by">
+          <svg viewBox="0 0 24 24" fill="none" width="15" height="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>
+          Powered by OpenAI
+        </div>
+      </div>
+      <div class="hero-image-container">
+        <div class="hero-chat-visual">
+          <div class="hero-chat-glow"></div>
+          <div class="hero-chat-card floating">
+            <div class="hero-chat-header">
+              <div class="hero-chat-avatar">
+                <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M12 3v18M7 7v10M17 7v10M3 10v4M21 10v4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></path></svg>
+              </div>
+              <div>
+                <div class="hero-chat-name">Orvion</div>
+                <div class="hero-chat-status">● Online</div>
+              </div>
+            </div>
+            <div class="hero-chat-messages">
+              <div class="hero-msg hero-msg-in"><span>Translate this to Spanish</span></div>
+              <div class="hero-msg hero-msg-out"><span>"¡Hola! ¿Cómo estás?"</span></div>
+              <div class="hero-msg hero-msg-in"><span>Read this message for me</span></div>
+              <div class="hero-msg hero-msg-out hero-msg-audio">
+                <svg viewBox="0 0 24 24" fill="none" width="14" height="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"></path><path d="M16 9a5 5 0 0 1 0 6"></path></svg>
+                <span>Voice Note (0:15)</span>
+              </div>
+            </div>
+            <div class="hero-chat-input">
+              <span>Type a message…</span>
+              <div class="hero-chat-send">
+                <svg viewBox="0 0 24 24" fill="none" width="16" height="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path></svg>
+              </div>
+            </div>
+          </div>
+          <div class="hero-badge-float hero-badge-1">
+            <svg viewBox="0 0 24 24" fill="none" width="14" height="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
+            57+ languages
+          </div>
+          <div class="hero-badge-float hero-badge-2">
+            <svg viewBox="0 0 24 24" fill="none" width="14" height="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path></svg>
+            Real-time AI
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Services ===== -->
+  <section id="services">
+    <div class="container">
+      <div class="section-header">
+        <h2>Everything You Need to <br><span class="text-gradient">Communicate Smarter</span></h2>
+        <p>Orvion handles the complexity so you can focus on the conversation.</p>
+      </div>
+      <div class="services-grid">
+        <div class="service-card">
+          <div class="service-icon" style="background: rgba(124,58,237,0.12); color: var(--primary-2);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"></path><path d="M16 9a5 5 0 0 1 0 6"></path><path d="M19.364 18.364a9 9 0 0 0 0-12.728"></path></svg>
+          </div>
+          <h3>Text to Speech</h3>
+          <p>Instant high-quality voiceovers from your text messages.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon" style="background: rgba(99, 102, 241, 0.12); color: rgb(129, 140, 248);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" x2="12" y1="19" y2="22"></line></svg>
+          </div>
+          <h3>Speech to Text</h3>
+          <p>Efficiently transcribe your voice notes into text.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon" style="background: rgba(34, 211, 238, 0.12); color: rgb(34, 211, 238);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg>
+          </div>
+          <h3>Translation</h3>
+          <p>Break language barriers with seamless AI-powered translation.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== WhatsApp ===== -->
+  <section id="whatsapp" class="wa-section">
+    <div class="container">
+      <div class="wa-grid">
+        <div class="wa-image">
+          <div class="chat-window">
+            <div class="chat-header-wa">
+              <div class="status-dot"></div>
+              <span>Orvion</span>
+            </div>
+            <div class="chat-body-wa">
+              <div class="msg received">"Translate this to Spanish"</div>
+              <div class="msg sent">"¡Hola! ¿Cómo estás?"</div>
+              <div class="msg received">"Read this for me"</div>
+              <div class="msg sent-audio"><span>▶ Voice Note (0:15)</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="wa-text">
+          <h2>Running on <span class="text-gradient">WhatsApp</span></h2>
+          <p>No new apps to install. No bookmarks to save. Just add Orvion as a contact and start chatting immediately.</p>
+          <ul class="wa-features">
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>
+              Always available 24/7
+            </li>
+            <li>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>
+              Powered by OpenAI
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Waitlist ===== -->
+  <section id="waitlist" class="waitlist">
+    <div class="container">
+      <div class="waitlist-inner">
+        <div class="section-header">
+          <h2>Get <span class="text-gradient">Early Access</span></h2>
+          <p>Join the waitlist and be among the first to talk, translate, and reply with Orvion.</p>
+        </div>
+        <form action="https://formsubmit.co/ahmad.m.mustapha@hotmail.com" method="POST">
+          <!-- FormSubmit config -->
+          <input type="hidden" name="_subject" value="New Orvion waitlist signup!">
+          <input type="hidden" name="_captcha" value="false">
+          <input type="hidden" name="_template" value="table">
+          <input type="text" name="_honey" style="display:none">
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="name">Full Name</label>
+              <input id="name" type="text" name="Name" placeholder="Jane Doe" required>
+            </div>
+            <div class="field">
+              <label for="email">Email Address</label>
+              <input id="email" type="email" name="Email" placeholder="jane@example.com" required>
+            </div>
+            <div class="field">
+              <label for="country">Country</label>
+              <input id="country" type="text" name="Country" placeholder="e.g. Lebanon" required>
+            </div>
+            <div class="field">
+              <label for="age">Age</label>
+              <input id="age" type="number" name="Age" min="13" max="120" placeholder="e.g. 28" required>
+            </div>
+            <div class="field full">
+              <label for="usecase">What are you planning to use Orvion for?</label>
+              <select id="usecase" name="Primary Use Case" required>
+                <option value="" disabled selected>Select a use case…</option>
+                <option value="Personal communication">Personal communication</option>
+                <option value="Business & customer support">Business &amp; customer support</option>
+                <option value="Travel & translation">Travel &amp; translation</option>
+                <option value="Content creation & voiceovers">Content creation &amp; voiceovers</option>
+                <option value="Learning a language">Learning a language</option>
+                <option value="Accessibility">Accessibility</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="field full">
+              <label for="details">Tell us more (optional)</label>
+              <textarea id="details" name="Details" placeholder="Describe how you'd like to use Orvion…"></textarea>
+            </div>
+          </div>
+          <button type="submit" class="btn-primary">Join the Waitlist</button>
+          <p class="form-note">No spam — we'll only email you when Orvion is ready for you.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Footer ===== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <div class="logo-group">
+            <div class="logo-icon" style="width: 32px; height: 32px;">
+              <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M12 3v18M7 7v10M17 7v10M3 10v4M21 10v4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></path></svg>
+            </div>
+            <span class="logo-text-footer">Orvion</span>
+          </div>
+          <p>Intelligent voice communication, powered by AI.</p>
+        </div>
+        <div class="footer-links">
+          <div class="link-col">
+            <h4>Product</h4>
+            <a href="#services">Features</a>
+            <a href="#whatsapp">WhatsApp</a>
+            <a href="#waitlist">Waitlist</a>
+          </div>
+          <div class="link-col">
+            <h4>Company</h4>
+            <a href="#">About</a>
+            <a href="#">Privacy</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 Orvion. Powered by OpenAI. All rights reserved.</p>
+        <a class="made-by" href="https://holonox.io" target="_blank" rel="noopener noreferrer">
+          <span>Made with</span>
+          <svg class="heart" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-label="love"><path d="M12 21s-6.716-4.297-9.428-7.01C.86 12.278.86 9.44 2.572 7.728a4.5 4.5 0 0 1 6.364 0L12 10.79l3.064-3.06a4.5 4.5 0 0 1 6.364 6.262C18.716 16.703 12 21 12 21z"></path></svg>
+          <span>by</span>
+          <img src="holonox-logo.svg" alt="Holonox" class="holonox-logo">
+        </a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
